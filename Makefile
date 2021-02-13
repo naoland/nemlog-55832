@@ -21,9 +21,10 @@ init:
 build:
 	@${GOBUILD} -o ./app app.go
 run:
-	go run app.go
+	${GOCMD} run app.go
 clean:
-	rm ./app
+	rm -rf ./app
+	rm -rf ./dist
 build-windows:
 	echo "Build for windows10"
 	GOOS=windows GOARCH=amd64 go build -o dist/windows/nemprice-win.exe app.go
