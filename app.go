@@ -24,6 +24,7 @@ func main() {
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
+// Zaif取引所の最終価格を取得して、価格を返します
 func fetchLastPrice() (price float64, err error) {
 	uri := "https://api.zaif.jp/api/1/last_price/xem_jpy"
 	req, _ := http.NewRequest("GET", uri, nil)
