@@ -14,6 +14,7 @@ GOPHER = "ʕ◔ϖ◔ʔʔ"
 gopher:
 	@echo ${GOPHER}
 version:
+	@echo ${GOPHER}
 	@${GOVERSION}
 init:
 	@${GOCMD} mod init naoland
