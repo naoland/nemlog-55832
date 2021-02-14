@@ -4,11 +4,12 @@
 
 前回はアンドロイドスマホのTermuxアプリのLinux環境で、Python言語で書いたシンプルなWEBアプリケーションを起動し、アンドロイドスマホやPCのブラウザからアクセスし、Zaifから取得したXEMの最終価格を表示しました。
 
-Termuxは、Android端末エミュレーターおよびLinux環境アプリです。
+`Termux`というのは、Android端末エミュレーターおよびLinux環境アプリです。
 
-今回は同様のことをGo言語で書いたシンプルなWEBアプリケーションで行ってみます。
+今回は前回の記事同様のことを、Go言語で実装したシンプルなWEBアプリケーションについて紹介します。
 
 Go言語でも同じことをするのは、Go言語がPython同様、非常に人気のあるプログラミング言語だからです。
+
 私が個人的に一番好きな言語だからという理由もありますｗ。
 
 TermuxアプリのLinux環境にGo言語の開発環境を導入する手順は、過去記事で紹介していますので、そちらを参照してください。
@@ -17,20 +18,45 @@ TermuxアプリのLinux環境にGo言語の開発環境を導入する手順は�
 
 任意の場所にディレクトリ（フォルダー）を作成し、そこに移動します。
 
+次のコマンドをタイプして実行してください。
+
+`gowebapp`というディレクトリ（フォルダー）作成します。
+
 ```
-mkdir gowebapp
-cd gowebapp
+$ mkdir gowebapp
 ```
+
+`gowebapp`というディレクトリ（フォルダー）に移動します。
+
+
 ```
-go mod init golang
-05:39:45 (.myvenv) nao@330 nemlog-55832 ±|main ✗|→ go mod init naoland
+$ cd gowebapp
+```
+
+Goのモジュールやパッケージの依存関係を管理するために初期化を行います。
+
+```
+$ go mod init naoland
+```
+
+実行例
+
+```
+main $ go mod init naoland
 go: creating new go.mod: module naoland
 
 ```
-`golang`の部分は好きな名前に変更してもかまいません。
+
+今回のような簡単なケースでは、`naoland`の部分は好きな名前に変更してもかまいません。
 
 
-パッケージをインストールします。
+WEBアプリを作るために必要なパッケージをインストールします。
+
+```
+$ go get -u github.com/gin-gonic/gin
+```
+
+実行例
 
 ```
 main $ go get -u github.com/gin-gonic/gin
@@ -73,49 +99,124 @@ go: golang.org/x/crypto upgrade => v0.0.0-20201221181555-eec23a3978ad
 go: downloading google.golang.org/protobuf v1.25.0
 go: downloading golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 ```
-Ginは大きめのWEBフレームワークなので、けっこうたくさんのパッケージがインストールされます。
+Ginが依存しているパッケージがインストールされます。
 
 
 ## WEBアプリの起動
 
 ```
-go run app.go
+$ go run app.go
 ```
 
 またはビルドしてから実行する場合は、
 
 ```
-go build app.go
+$ go build app.go
 ./app
 ```
 
+次にビルドされたアプリを起動します。
+
+```
+$ ./app
+```
+
+上記の手順を実行すると、`gowebapp`というWEBアプリが起動します。
+
+
 ## WEBアプリの動作確認
+
+アンドロイドスマホ上のChromeアプリで確認する方法と、PC上のChromeアプリで確認する方法があります。
+
+### アンドロイドスマホ上のChromeアプリで確認する方法
+
+- Chromeブラウザアプリを起動します。
+- http://localhost:8080/last_price/xem_jpy にアクセスします。
+
+次の結果が得られるはずです。
+
+
+
+
+### PC上のChromeアプリで確認する方法
+
+
+- Chromeブラウザアプリを起動します。
+- http://localhost:8080/last_price/xem_jpy にアクセスします。
+
+次の結果が得られるはずです。
 
 ## ソースコード
 ```go
-  package main
+package main
 
-  import (
-      "fmt"
-      "io/ioutil"
-      "net/http"
-  )
+import (
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net/http"
 
-  func main() {
-      uri := "https://api.zaif.jp/api/1/last_price/btc_jpy"
-      req, _ := http.NewRequest("GET", uri, nil)
+	"github.com/gin-gonic/gin"
+)
 
-      client := new(http.Client)
-      resp, _ := client.Do(req)
-      defer resp.Body.Close()
+// ResponseZaifInfo Zaifからのレスポンス
+type ResponseZaifInfo struct {
+	LastPrice float64 `json:"last_price"`
+}
 
-      byteArray, _ := ioutil.ReadAll(resp.Body)
-      fmt.Println(string(byteArray))
-  }
-  // 結果 {"last_price": 130065.0}
+func main() {
+	r := gin.Default()
+	r.GET("/last_price", func(c *gin.Context) {
+		price, err := fetchLastPrice()
+		if err != nil {
+			log.Fatal(err)
+		}
+		c.String(http.StatusOK, "XEM最終価格: %.3f", price)
+	})
+	r.Run("0.0.0.0:3000")
+}
+
+// Zaif取引所の最終価格を取得して、価格を返します
+func fetchLastPrice() (price float64, err error) {
+	uri := "https://api.zaif.jp/api/1/last_price/xem_jpy"
+	req, _ := http.NewRequest("GET", uri, nil)
+
+	client := new(http.Client)
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	byteArray, _ := ioutil.ReadAll(resp.Body)
+
+	response := new(ResponseZaifInfo)
+	err = json.Unmarshal(byteArray, &response)
+
+	if err != nil {
+		log.Printf("マーシャルエラー: %#v\n", err) // 構造調べ
+		return
+	}
+	price = response.LastPrice
+	return
+}
 ```
 
 ## まとめ
+
+いかがでしたでしょうか？
+
+前回の記事でご紹介したPython言語によるコードを実行した場合よりも早く結果が得られたのではないでしょうか？
+Go言語で作成したプログラムは高速だと言われており、速度が重要なサービスの開発で使用されるケースが増えています。
+Go言語の文法などは非常にシンプルなので、慣れればPythonよりもコードを書くのが楽だと思います。
+Python言語は簡単だと言われますが、それはバージョンが2.x時代であって、現在は非常に複雑な言語の1つだと思います。
+また1つの事を実現するコードは大体同じになると言われてますが、それも過去の事です。現在は同じことを実現するコードをいろんな方法で書くことができてしまいます。
+
+その点、Go言語は昔のPythonのように、1つのことを実現する方法のコードは大体同じになります。
+
+国家試験でPythonを選択できるようになりましたが、馬鹿じゃないのか？と思います。時代が変わったといえ、スクリプト言語なんかを国家試験レベルの対象にすべきではないと私は思ってます。
+
+ということで、今後のTipsシリーズではPython言語も扱いますが、わかりやすい場合はGo言語で紹介したいと思います。
+
 
 ## 関連情報へのリンク
 
