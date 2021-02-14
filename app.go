@@ -2,13 +2,17 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+// ResponseZaifInfo Zaifからのレスポンス
+type ResponseZaifInfo struct {
+	LastPrice float64 `json:"last_price"`
+}
 
 func main() {
 	r := gin.Default()
@@ -17,11 +21,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		c.JSON(200, gin.H{
-			"price": price,
-		})
+		c.String(http.StatusOK, "XEM最終価格: %.3f", price)
 	})
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run("0.0.0.0:3000")
 }
 
 // Zaif取引所の最終価格を取得して、価格を返します
@@ -35,10 +37,7 @@ func fetchLastPrice() (price float64, err error) {
 		return
 	}
 	defer resp.Body.Close()
-
 	byteArray, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(byteArray))
-	// {"last_price": 41.7796}
 
 	response := new(ResponseZaifInfo)
 	err = json.Unmarshal(byteArray, &response)
@@ -48,11 +47,5 @@ func fetchLastPrice() (price float64, err error) {
 		return
 	}
 	price = response.LastPrice
-	fmt.Printf("%.3f\n", price)
-	// 41.780
 	return
-}
-
-type ResponseZaifInfo struct {
-	LastPrice float64 `json:"last_price"`
 }
