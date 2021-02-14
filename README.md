@@ -181,6 +181,11 @@ $ ip -4 a | grep inet
 
 ![](https://i.gyazo.com/44921c9ba402dc614f41b895dee44248.png)
 
+
+WEBアプリのログはこんな感じで表示されます。
+
+<img src="https://i.gyazo.com/923f838bdac5c21d43846d7f57a33393.png" alt="drawing" width="50%"/>
+
 ## ソースコード
 
 `Tips`シリーズの記事では原則、ソースコードの説明はしません。
