@@ -76,18 +76,53 @@ Ginが依存しているパッケージが自動でインストールされた�
 $ pkg install make
 ```
 
+どのようにアプリをビルドするかなど、`Makefile`の内容を参照してください。
+
+もしWindows用にビルドしたい場合は次のコマンドを実行してください。
+
+```
+$ make build-windows
+```
+
+実行結果
+
+```
+$ make build-windows
+echo "Build for windows10"
+Build for windows10
+GOOS=windows GOARCH=amd64 go build -o dist/windows/nemprice-win.exe app.go
+echo "Done!"
+Done!
+```
+
+`Windows 10`や`Ubuntu`用にビルドした実行ファイルを、アンドロイドスマホからコピーするには`scp`コマンドを使うのが一番簡単だとは思いますが、ちょっとだけコツがいるので、またの機会に紹介したいと思います
+
+
+同様にMac用にビルドしたい場合は次のコマンドを実行してください。
+
+```
+$ make build-mac
+```
+
+実行結果
+
+```
+$ make build-mac
+echo "Build for macOS(Darwin)"
+Build for macOS(Darwin)
+GOOS=darwin GOARCH=amd64 go build -o dist/macos/nemprice-mac app.go
+```
 
 ## WEBアプリの起動
 
 ```
-$ go run app.go
+$ make run
 ```
 
 またはビルドしてから実行する場合は、
 
 ```
-$ go build app.go
-./app
+$ make build
 ```
 
 次にビルドされたアプリを起動します。
@@ -96,32 +131,61 @@ $ go build app.go
 $ ./app
 ```
 
-上記の手順を実行すると、`gowebapp`というWEBアプリが起動します。
-
+上記の手順を実行すると、`app`というWEBアプリが起動します。
 
 ## WEBアプリの動作確認
 
-アンドロイドスマホ上のChromeアプリで確認する方法と、PC上のChromeアプリで確認する方法があります。
+アンドロイドスマホ上のTermuxで直接、またはPCのターミナルからSSH接続して、WEBアプリを起動しておいてください。
+起動方法は前述のとおりです。
+
+
+動作確認の方法は、アンドロイドスマホ上のChromeアプリで確認する方法と、PC上のChromeアプリで確認する方法があります。
 
 ### アンドロイドスマホ上のChromeアプリで確認する方法
 
 - Chromeブラウザアプリを起動します。
-- http://localhost:8080/last_price/xem_jpy にアクセスします。
+- http://localhost:3000/last_price にアクセスします。
 
 次の結果が得られるはずです。
 
-
+<img src="https://i.gyazo.com/dd14302368872c8a7349fdb887238ff2.png" alt="drawing" width="30%"/>
 
 
 ### PC上のChromeアプリで確認する方法
 
 
 - Chromeブラウザアプリを起動します。
-- http://localhost:8080/last_price/xem_jpy にアクセスします。
+- http://アンドロイドスマホのIPアドレス:3000/last_price にアクセスします。
+
+IPアドレスの調べ方は次のコマンドを実行してください。
+
+```
+$ ip -4 a | grep inet
+```
+
+実行結果
+
+```
+$ ip -4 a | grep inet
+    inet 127.0.0.1/8 scope host lo
+    inet 192.168.1.3/24 brd 192.168.1.255 scope global wlan0
+```
+
+この場合IPアドレスは`192.168.1.3'です。
+
+ですので、PCのブラウザから`http://192.168.1.3:3000/last_price`にアクセスしてください。
+
+
 
 次の結果が得られるはずです。
 
+![](https://i.gyazo.com/44921c9ba402dc614f41b895dee44248.png)
+
 ## ソースコード
+
+`Tips`シリーズの記事では原則、ソースコードの説明はしません。
+コピペや今回のように、GitHubからリポジトリをダウンロードしてきて、そのまま使える内容をご紹介していますので、ご了承ください。
+
 ```go
 package main
 
@@ -194,6 +258,13 @@ Python言語は簡単だと言われますが、それはバージョンが2.x�
 
 ということで、今後のTipsシリーズではPython言語も扱いますが、わかりやすい場合はGo言語で紹介したいと思います。
 
+それにしても、アンドロイドスマホでこれだけの事ができるなんてすごくないですか？
+
+確かに速度は遅いですが、やりたいこと（簡単な開発）はすべてできています。
+
+環境をぶち壊しても、Termuxアプリを削除して、環境を作り直すだけです。
+
+環境を作り直すのは若干面倒なので、自動で再構築するスクリプトを提供する予定ですのでお楽しみに。
 
 ## 関連情報へのリンク
 
